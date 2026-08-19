@@ -14,6 +14,7 @@ require('./config/db')
 // Import des routes
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
+const teamRoutes = require('./routes/teamRoutes')
 
 // Limiter le nb d'appel à notre API
 const limiter = rateLimit({
@@ -32,6 +33,7 @@ app.use(
 app.use(limiter)
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', userRoutes)
+app.use('/api/v1/teams', teamRoutes)
 
 app.get('/', (req, res) =>{
     res.send('Bienvenue sur mon API RESTful !')

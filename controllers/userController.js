@@ -9,17 +9,17 @@ const profile = async (req, res) => {
     }
 }
 
+// Update user profile US3
 const updateProfile = async (req, res) => {
-    // Vérifier qu'on est bien connecté
-    
-    // All controls are checked
     try {
+        // User exists?
         const user = await User.findById(req.user._id)
         if(user == null) {
             return res.status(404).json({message:'User not found'})
         }
-        const { pseudo, email, password } = req.body
-        // Vérifier que ce compte nous appartient
+
+        // Datas recovery
+        const { pseudo, email, password, memberTeam } = req.body
         
         // Values allocation
         if(pseudo != null){
@@ -32,6 +32,10 @@ const updateProfile = async (req, res) => {
 
         if(password != null){
             user.password= req.body.password
+        }
+
+        if(memberTeam != null) {
+            user.memberTeam = req.body.memberTeam
         }
 
         // Values modified
