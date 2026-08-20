@@ -21,7 +21,7 @@ const register = async (req, res) => {
 
         // Fields don't have to be empty
         if(!pseudo || !email || !password){
-            return res.statut(400).json({message: 'Pleaase provide pseudo, email and password'})
+            return res.status(400).json({message: 'Pleaase provide pseudo, email and password'})
         }
 
         // Elements required for password
@@ -63,7 +63,7 @@ const register = async (req, res) => {
 
         // Response 
         res.status(201).json({
-            message: "Tou are registered",
+            message: "You are registered",
             token,
             user: {
                 pseudo: user.pseudo,

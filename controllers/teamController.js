@@ -84,12 +84,6 @@ const joinTeam = async (req, res) => {
             return res.status(401).json({message: 'You have already a team'}) 
         }
 
-        // Email lié à l'id
-        // const idMember = await User.findOne({email})
-        // if(idMember == null){
-        //     return res.status(404).json({message: 'User not found'})
-        // }
-
         // All controles ares passed
         team.members.push(req.user._id)
         const newMember = await team.save()
@@ -112,7 +106,7 @@ const addMember = async (req, res) => {
         }
         // Am I leader of this team?
         if(req.user._id.toString() != team.leader.toString()){
-            return res.status(401).json({message:'You are not permissived to do that'})
+            return res.status(401).json({message:'You are not allowed to do that'})
         }
 
         // Datas recovery
@@ -158,7 +152,7 @@ const deleteMembers = async (req, res) => {
 
         // I am leader of this team
         if(req.user._id != team.leader.toString()){
-            return res.status(401).json({message:'You are not permissived to do that'})
+            return res.status(401).json({message:'You are not alllowed to do that'})
         }
 
         // datas recovery
@@ -200,7 +194,7 @@ const deleteMembers = async (req, res) => {
         })
 
     } catch (err) {
-        res.status(500).json({message: 'Server error during create a new team', error: err.message})
+        res.status(500).json({message: 'Server error during delete a member', error: err.message})
     }
 
 }

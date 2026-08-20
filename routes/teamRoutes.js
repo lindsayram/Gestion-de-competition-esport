@@ -1,6 +1,7 @@
+// Importing packages, functions
 const express = require('express')
 const authMiddleware = require('../middleware/authMiddleware')
-const { createTeam, joinTeam, addMember,deleteMembers } = require('../controllers/teamController')
+const { createTeam, joinTeam, addMember, deleteMembers } = require('../controllers/teamController')
 const router = express.Router()
 
 // Roads network
