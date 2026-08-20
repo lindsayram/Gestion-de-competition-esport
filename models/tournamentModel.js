@@ -24,6 +24,9 @@ const tournamentSchema = new mongoose.Schema (
         organizer:{
             type: mongoose.Schema.ObjectId,
             required: true,
+        },
+        participants:{
+            type: Array,
         }
     },
     {
