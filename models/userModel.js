@@ -25,12 +25,9 @@ const userSchema = new mongoose.Schema (
         },
         role:{
             type: String,
-            enum: ['player', 'admin', 'organizer'],
+            enum: ['player', 'leader', 'admin', 'organizer'],
             default: 'player'
         },
-        memberTeam:{
-            type: String,
-        }
     },
     {
         timestamps: true,

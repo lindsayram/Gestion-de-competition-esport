@@ -19,7 +19,7 @@ const updateProfile = async (req, res) => {
         }
 
         // Datas recovery
-        const { pseudo, email, password, memberTeam } = req.body
+        const { pseudo, email, password } = req.body
         
         // Values allocation
         if(pseudo != null){
@@ -32,10 +32,6 @@ const updateProfile = async (req, res) => {
 
         if(password != null){
             user.password= req.body.password
-        }
-
-        if(memberTeam != null) {
-            user.memberTeam = req.body.memberTeam
         }
 
         // Values modified
