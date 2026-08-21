@@ -26,7 +26,7 @@ const createTeam = async (req, res) => {
 
         // Already team member or a leader? (1 team)
         const alreadyInTeam = await Team.findOne({members: req.user._id})
-        if(alreadyInTeam || req.user.role == 'leader'){
+        if(alreadyInTeam && req.user.role == 'leader'){
             return res.status(400).json({message: 'You have already a team'})
         }
 
@@ -36,8 +36,9 @@ const createTeam = async (req, res) => {
             members: req.user._id,
             leader: req.user._id,
         })
+        Team.populate('members', 'pseudo')
 
-           // Update user: player to leader
+        // Update user: player to leader
         const updateRoleUser = await User.findByIdAndUpdate(
             req.user._id,
             {role: 'leader'},
@@ -78,6 +79,11 @@ const joinTeam = async (req, res) => {
             return res.status(404).json({message:'Team not found'})
         }
 
+        // Is he a player?  
+        if(req.user.role != 'player'){
+            return res.status(401).json({message: 'You have not authorization'})
+        }
+
         // user has already a team?
         const alreadyTeam = await Team.findOne({members: req.user._id})      
         if(alreadyTeam){
@@ -89,7 +95,9 @@ const joinTeam = async (req, res) => {
         const newMember = await team.save()
 
         // Response
-        res.json(newMember)
+        res.json({
+            message: 'You join a team',
+            newMember})
 
     } catch (err) {
         res.status(500).json({message: 'Server error during join a team', error: err.message})
@@ -104,6 +112,7 @@ const addMember = async (req, res) => {
         if(team == null){
             return res.status(404).json({message:'Team not found'})
         }
+
         // Am I leader of this team?
         if(req.user._id.toString() != team.leader.toString()){
             return res.status(401).json({message:'You are not allowed to do that'})
@@ -119,10 +128,16 @@ const addMember = async (req, res) => {
 
         // user (email) exists?
         const existingUser = await User.findOne({email})
+        console.log(existingUser)
         if(!existingUser){
             return res.status(400).json({message: 'Please provide an email valid'})
         }
         
+        // user is a player?
+        if(existingUser.role != 'player'){
+            return res.status(400).json({message: 'You can invite only a player'})
+        }
+
         // user (email-->id) already member
         if(team.members.includes(existingUser._id)){
             return res.status(400).json({message: 'He is already a member'})
@@ -152,37 +167,38 @@ const deleteMembers = async (req, res) => {
 
         // I am leader of this team
         if(req.user._id != team.leader.toString()){
-            return res.status(401).json({message:'You are not alllowed to do that'})
+            return res.status(401).json({message:'You are not allowed to do that'})
         }
 
         // datas recovery
         const member = req.body.email || req.body.pseudo
-
+        
         // field not empty
-        if(!email){
-            return res.status(400).json({message:'Please provide an email'})
+        if(!member){
+            return res.status(400).json({message:'Please provide an email or a pseudo'})
         }
 
-        // Email exists?
-        const exisitingUser = await User.findOne({member})
-        if(exisitingUser == null){
+        // Email/pseudo exists?
+        const existingUser = await User.findOne({member})        
+        console.log(existingUser)
+        if(!existingUser){
             return res.status(404).json({ message: "User not found"})
         }
 
         // User is a member?
-        if(!team.members.includes(exisitingUser._id)){
+        if(!team.members.includes(existingUser._id)){
             return res.status(400).json({message:'This user is not a member'})
         }
         
         // Si le membre == leader ne peut pas le supp
-        if(exisitingUser._id.toString() == team.leader.toString()){
+        if(existingUser._id.toString() == team.leader.toString()){
             return res.status(400).json({message:'This user is a leader you cannot do that'})
         }
 
         // Delete email in team.members
         // All controles are passed
         const deletedMember = await Team.updateMany({},
-            {$pull: {members: exisitingUser._id}},
+            {$pull: {members: existingUser._id}},
             { new: true }
         )
             
@@ -223,16 +239,27 @@ const deleteTeam = async (req, res) => {
     }
 }
 
-// Consult teams US17
+// Consult team US17
 const getTeams = async (req, res) => {
     try {
-        // Found all teams
-        const teams = await Team.find()
-            .populate('members', 'pseudo')
-            .populate('leader', 'pseudo')
+        // Found a team
+        const team = await Team.findById(req.params.idTeam).populate('members', 'pseudo').populate('leader', 'pseudo')
+
+        // Fields not empty
+        if(!team){
+            return res.status(404).json({message:'Team not found'})
+        }
+
+        // Am I a player or leader
+        if(req.user.role != 'player' && req.user.role != 'leader'){
+            return res.status(401).json({message:'You are not authorized'})
+        }
 
         // Response
-        res.json(teams)
+        res.json({
+            message:'Informations recovery success',
+            team
+        })
 
     } catch (err) {
         res.status(500).json({message: 'Server error during get teams', error: err.message})

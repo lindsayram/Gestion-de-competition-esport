@@ -45,7 +45,7 @@ const register = async (req, res) => {
         }
 
         // Email already exists?
-        const existingEmail = await User.findOne ({email})
+        const existingEmail = await User.findOne({email})
         if(existingEmail) {
             return res.status(400).json({message: "Email invalid"})
         }

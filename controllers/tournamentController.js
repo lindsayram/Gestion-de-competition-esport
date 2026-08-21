@@ -68,10 +68,16 @@ const updateTournament = async (req, res) => {
         }
 
         // Datas recovery
-        // Tournament name already exists?
-        const nameTournament = req.body.name
-        const existingName = await Tournament.findOne({nameTournament})
-        if(req.body.name != null && !existingName){
+        const {name, game, date, rules} =req.body
+
+        // Tournament name already exists?       
+        const existingName = await Tournament.findOne({name})
+        if(existingName){
+            return res.status(400).json({message:'Name is invalid'})
+        }
+
+        // Values allocation
+        if(req.body.name != null){
             tournament.name = req.body.name
         }
 
@@ -159,7 +165,10 @@ const addParticipants =async (req, res) => {
         const addedParticipant = await tournament.save()
 
         // Response
-        res.json(addedParticipant)
+        res.json({
+            message:'Your team is registered',
+            addedParticipant
+        })
 
     } catch (err) {
         res.status(500).json({message: 'Server error during add a team on this tournament', error: err.message})
@@ -172,6 +181,7 @@ const getAllTournaments = async (req, res) => {
         // Found all tournaments
         const tournament = await Tournament.find()
             // .select( 'name game date -_id')
+        
         // Response
         res.json(tournament)
 
@@ -253,7 +263,7 @@ const getTournamentsRegistered = async (req, res) => {
         const idTeam= new mongoose.Types.ObjectId(req.params.idTeam)
 
         // Filter tournaments
-        const tournament = await Tournament.find({participants: idTeam})
+        const tournament = await Tournament.find({participants: idTeam}).populate('participants', 'name')
         
         // Response
         res.status(200).json(tournament)

@@ -19,7 +19,7 @@ const updateProfile = async (req, res) => {
         }
 
         // Datas recovery
-        const { pseudo, email, password } = req.body
+        const { pseudo, email, password, role } = req.body
         
         // Values allocation
         if(pseudo != null){
@@ -34,6 +34,9 @@ const updateProfile = async (req, res) => {
             user.password= req.body.password
         }
 
+        if(role != null){
+            return res.status(401).json({message: 'You are not authorized'})
+        }
         // Values modified
         const updatedProfile = await user.save()
         res.json(updatedProfile)
