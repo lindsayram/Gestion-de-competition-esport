@@ -22,11 +22,14 @@ const tournamentSchema = new mongoose.Schema (
             required:[true, 'Rules are required']
         },
         organizer:{
-            type: mongoose.Schema.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             required: true,
+            ref: 'User',
         },
         participants:{
             type: Array,
+            ref: 'Team',
+            default: []
         }
     },
     {

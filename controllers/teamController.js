@@ -156,7 +156,7 @@ const deleteMembers = async (req, res) => {
         }
 
         // datas recovery
-        const email = req.body.email
+        const member = req.body.email || req.body.pseudo
 
         // field not empty
         if(!email){
@@ -164,7 +164,7 @@ const deleteMembers = async (req, res) => {
         }
 
         // Email exists?
-        const exisitingUser = await User.findOne({email})
+        const exisitingUser = await User.findOne({member})
         if(exisitingUser == null){
             return res.status(404).json({ message: "User not found"})
         }
@@ -198,4 +198,45 @@ const deleteMembers = async (req, res) => {
     }
 
 }
-module.exports = {createTeam, joinTeam, addMember, deleteMembers}
+
+// Delete a team US14
+const deleteTeam = async (req, res) => {
+    try {
+        // Team exists?
+        const existingTeam = await Team.findById(req.params.idTeam)
+        if(existingTeam == null){
+            return res.status(404).json({message:'Team not found'})
+        }
+
+        // Am I an admin
+        const amAdmin = await User.findById(req.user._id)
+        if(amAdmin.role != 'admin'){
+            return res.status(401).json({message:'You are not authorized'})
+        }
+
+        // Delete team
+        await existingTeam.deleteOne()
+        res.json({message:'Team is deleted'})
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during delete a team', error: err.message})
+    }
+}
+
+// Consult teams US17
+const getTeams = async (req, res) => {
+    try {
+        // Found all teams
+        const teams = await Team.find()
+            .populate('members', 'pseudo')
+            .populate('leader', 'pseudo')
+
+        // Response
+        res.json(teams)
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during get teams', error: err.message})
+    }
+}
+
+module.exports = {createTeam, joinTeam, addMember, deleteMembers, deleteTeam, getTeams}

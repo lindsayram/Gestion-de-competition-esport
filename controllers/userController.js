@@ -43,4 +43,44 @@ const updateProfile = async (req, res) => {
     }
 }
 
-module.exports = {profile, updateProfile}
+// Update roles US16
+const updateRole  = async (req, res) => {
+    try {
+        // user exists?
+        const existingUser = await User.findById(req.params.idUser)
+        if(existingUser == null){
+            return res.status(404).json({message: 'User not found'})
+        }
+
+        // datas recovery
+        const roleUser = req.body.role
+
+        // fields not empty
+        if(!roleUser){
+            return res.status(400).json({message:'Please provide a role'})
+        }
+
+        // Am I an admin
+        if(req.user.role != 'admin'){
+            return res.status(401).json({message: 'You are not authorized'})
+        }
+
+        // role already exists?
+        if(roleUser == existingUser.role){
+            return res.status(400).json({message: 'This role already exists'})
+        }
+
+        // Value allocation
+        if(roleUser != null){
+            existingUser.role = roleUser
+        }
+
+        // Values modified
+        const updatedRole = await existingUser.save()
+        res.json(updatedRole)
+
+    } catch (err) {
+        return res.status(500).json({message: 'Servor error during update a role', error: err.message})
+    }
+}
+module.exports = {profile, updateProfile, updateRole}

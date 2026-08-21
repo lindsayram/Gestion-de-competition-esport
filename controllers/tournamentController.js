@@ -1,7 +1,8 @@
 // Importing packages and models
 const Tournament = require('../models/tournamentModel')
 const Team = require('../models/teamModel')
-// const User = require('../models/userModel')
+const User = require('../models/userModel')
+const mongoose = require('mongoose')
 
 // Create a tournament US8
 const createTournament  = async (req, res) => {
@@ -165,4 +166,101 @@ const addParticipants =async (req, res) => {
     }
 }
 
-module.exports = {createTournament, updateTournament, deleteTournament, addParticipants}
+// Display tournaments US12
+const getAllTournaments = async (req, res) => {
+    try {
+        // Found all tournaments
+        const tournament = await Tournament.find()
+            // .select( 'name game date -_id')
+        // Response
+        res.json(tournament)
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during get tournaments', error: err.message})
+    }
+}
+
+// Display members of this tournament US13
+const getMembers = async (req, res) =>{
+    try {
+        // tournament exists?
+        const tournament = await Tournament.findById(req.params.idTournament).populate('participants', 'name')
+
+        if(tournament == null){
+            return res.status(404).json({message: 'Tournament not found'})
+        }
+
+        // Am i organizer
+        if(tournament.organizer.toString() != req.user._id.toString()){
+            return res.status(401).json({message:'You are not the organizer'})
+        }
+
+        // Controls checked
+        // Response
+        res.status(200).json({
+            tournament: {
+                name: tournament.name,
+                participants: tournament.participants,
+            }
+        })        
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during get participants on this tournament', error: err.message})
+    }
+}
+
+// Display number of participants  US15
+const quantityParticipants = async (req, res) => {
+    try {
+
+        // Am i an admin
+        const amAdmin = await User.findById(req.user._id)
+        if(amAdmin.role != 'admin'){
+            return res.status(401).json({message:'You are not authorized'})
+        }
+
+        // Controls checked
+        const stats = await Tournament.aggregate([
+          { 
+            $project: {
+            name: "$name",
+            quantity: { $size: "$participants" }}
+          }
+        ])
+        
+        res.status(200).json(stats)
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during get participants quantity on this tournament', error: err.message})
+    }
+}
+
+// Display tournaments when my team is registered US18
+const getTournamentsRegistered = async (req, res) => {
+    try {
+        // // Team exists?
+        const existingTeam = await Team.findById(req.params.idTeam)
+        if(existingTeam == null){
+            return res.status(404).json({message:'Team not found'})
+        }
+
+        // // Am I a member?
+        if(!existingTeam.members.includes(req.user._id)){
+            return res.status(400).json({message:'This is not your team'})
+        }
+
+        // Convert string to object
+        const idTeam= new mongoose.Types.ObjectId(req.params.idTeam)
+
+        // Filter tournaments
+        const tournament = await Tournament.find({participants: idTeam})
+        
+        // Response
+        res.status(200).json(tournament)
+
+    } catch (err) {
+        res.status(500).json({message: 'Server error during get tournaments', error: err.message})
+    }
+}
+
+module.exports = {createTournament, updateTournament, deleteTournament, addParticipants, getAllTournaments, getMembers, quantityParticipants, getTournamentsRegistered}
