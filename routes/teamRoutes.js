@@ -8,7 +8,7 @@ const router = express.Router()
 router.post('/', authMiddleware, createTeam)                    //US5
 router.put('/', authMiddleware, joinTeam)                       //US6
 router.put('/invite/:idTeam', authMiddleware, addMember)        //US7
-router.patch('/remove/:idTeam', authMiddleware, deleteMembers)  //US7
+router.put('/remove/:idTeam', authMiddleware, deleteMembers)  //US7
 router.delete('/:idTeam', authMiddleware, deleteTeam)           //US14
 router.get('/:idTeam', authMiddleware, getTeams)                //US17
 

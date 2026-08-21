@@ -128,7 +128,7 @@ const addMember = async (req, res) => {
 
         // user (email) exists?
         const existingUser = await User.findOne({email})
-        console.log(existingUser)
+        
         if(!existingUser){
             return res.status(400).json({message: 'Please provide an email valid'})
         }
@@ -137,7 +137,7 @@ const addMember = async (req, res) => {
         if(existingUser.role != 'player'){
             return res.status(400).json({message: 'You can invite only a player'})
         }
-
+        console.log(existingUser.role)
         // user (email-->id) already member
         if(team.members.includes(existingUser._id)){
             return res.status(400).json({message: 'He is already a member'})
@@ -166,35 +166,41 @@ const deleteMembers = async (req, res) => {
         }
 
         // I am leader of this team
-        if(req.user._id != team.leader.toString()){
+        if(req.user._id.toString() != team.leader.toString()){
             return res.status(401).json({message:'You are not allowed to do that'})
         }
 
         // datas recovery
-        const member = req.body.email || req.body.pseudo
+        const infoMember = req.body.email || req.body.pseudo
         
         // field not empty
-        if(!member){
+        if(!infoMember){
             return res.status(400).json({message:'Please provide an email or a pseudo'})
         }
 
         // Email/pseudo exists?
-        const existingUser = await User.findOne({member})        
-        console.log(existingUser)
-        if(!existingUser){
-            return res.status(404).json({ message: "User not found"})
-        }
+        const existingUser = await User.findOne({
+            $or: [
+                {email: infoMember},
+                {pseudo: infoMember}
+            ]})        
 
+        // const isMember = team.members.some(memberId => memberId.equals(existingUser._id))
+        
+        if(!existingUser){
+            return res.status(400).json({message:'This user is not a member'})
+        }
+        
         // User is a member?
         if(!team.members.includes(existingUser._id)){
             return res.status(400).json({message:'This user is not a member'})
         }
         
         // Si le membre == leader ne peut pas le supp
-        if(existingUser._id.toString() == team.leader.toString()){
+        if(existingUser._id == team.leader){
             return res.status(400).json({message:'This user is a leader you cannot do that'})
         }
-
+        console.log(team.members)
         // Delete email in team.members
         // All controles are passed
         const deletedMember = await Team.updateMany({},
