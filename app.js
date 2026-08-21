@@ -1,6 +1,7 @@
 // Import des packages
 const express = require('express')
 const app = express()
+const cors = require('cors')
 const helmet= require ('helmet')
 const rateLimit = require('express-rate-limit')
 const port = 3001
@@ -31,7 +32,9 @@ app.use(
         crossOriginResourcePolicy: {policy: "cross-origin"}
     })
 )
+app.use(cors())
 app.use(limiter)
+
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/teams', teamRoutes)
